@@ -82,7 +82,7 @@ struct StarsView: View {
 
     @ViewBuilder
     private func missions(_ history: [LessonSession]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        LazyVStack(alignment: .leading, spacing: 10) {
             Text("My missions").font(.moop(.title3, weight: .semibold))
             if history.isEmpty {
                 HStack(spacing: 12) {

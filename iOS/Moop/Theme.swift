@@ -12,7 +12,7 @@ extension Color {
 
     static let moopInk = Color(hex: 0x1B2559)
     static let moopInkSoft = Color(hex: 0x4A5582)
-    static let moopFaint = Color(hex: 0x8D99BE)
+    static let moopFaint = Color(hex: 0x6E7AA0)
     static let moopSky = Color(hex: 0xEAF4FF)
     static let moopLine = Color(hex: 0xC9DBF2)
     static let moopOrange = Color(hex: 0xFF7A1A)

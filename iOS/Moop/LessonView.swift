@@ -83,8 +83,11 @@ struct LessonView: View {
         let total = session.questions.count
         let answered = session.attempts.count
         return HStack(spacing: 14) {
-            Button(action: onPause) { IconTileLabel(systemName: "pause.fill") }
-                .accessibilityLabel("Pause and go home")
+            // After the last answer the lesson is already complete, so only "See how I did" moves on.
+            if feedback?.isLast != true {
+                Button(action: onPause) { IconTileLabel(systemName: "pause.fill") }
+                    .accessibilityLabel("Pause and go home")
+            }
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Question \(number) of \(total)")
@@ -292,7 +295,10 @@ struct CountingDots: View {
     @ViewBuilder
     private func dotView(_ dot: Dot, size: CGFloat) -> some View {
         switch dot {
-        case .orange: Circle().fill(Color.moopOrange).frame(width: size, height: size)
+        case .orange:
+            Circle().fill(Color.moopOrange)
+                .overlay(Circle().strokeBorder(Color.moopOrangeDeep, lineWidth: 2))
+                .frame(width: size, height: size)
         case .blue: Circle().fill(Color.moopBlue).frame(width: size, height: size)
         case .gone:
             Circle()
