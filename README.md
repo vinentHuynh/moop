@@ -11,8 +11,21 @@ An initial SwiftUI math-learning prototype for a planned parent-controlled learn
 - Local atomic JSON persistence of plan, current lesson and completed history.
 - Resume after closing the app; immutable active lesson plan snapshot.
 - Pure Swift package with tests; macOS CI tests and builds the iOS prototype.
+- Kid-friendly interface: mascot, mission card, in-app number keypad, per-answer feedback, optional counting dots, celebration and "so close" results, a weekly star tracker, and a press-and-hold grown-ups check in front of the plan editor.
+- Sign-in screen with Sign in with Apple, Sign in with Google and Try the demo (UI only; see below).
 
-The prototype plan editor is intentionally accessible for development. It has no parent PIN, account or remote permissions yet. The configured usage allowance does not grant or meter actual device access.
+The press-and-hold grown-ups check only keeps young children out; it is not a security lock. The plan editor has no parent PIN, account or remote permissions yet. The configured usage allowance does not grant or meter actual device access.
+
+## Sign-in and demo mode (UI only)
+
+The app opens on a sign-in screen with three options:
+
+- **Sign in with Apple** and **Sign in with Google** are placeholders. Tapping either shows a "Coming soon" message and offers the demo. No authentication, accounts or network calls exist yet. The Apple button follows Apple's black button style using an SF Symbol; the Google button is a neutral placeholder and must be replaced with Google's official branded button when Google Sign-In is integrated.
+- **Try the demo** opens the app as it works today, with all data kept locally on the device.
+
+The choice is remembered in `UserDefaults` (`moop.entryMode`), so the demo reopens directly on the next launch. To return to the sign-in screen, open the grown-ups area and tap **Leave demo and go to sign-in**. Leaving the demo does not delete saved lessons or history.
+
+Planned backend work for real sign-in: Sign in with Apple (AuthenticationServices plus the Sign in with Apple capability), Google Sign-In for iOS, and federation into Cognito as described in the target architecture below.
 
 ## Run on a Mac
 

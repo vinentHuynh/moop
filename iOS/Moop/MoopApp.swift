@@ -80,136 +80,65 @@ struct MoopApp: App {
     @StateObject private var store = AppStore()
     var body: some Scene {
         WindowGroup {
-            TabView {
-                LessonView().tabItem { Label("Learn", systemImage: "number") }
-                PlanView().tabItem { Label("Plan", systemImage: "slider.horizontal.3") }
-                ProgressViewScreen().tabItem { Label("Progress", systemImage: "chart.bar") }
-            }
-            .tint(.indigo)
-            .environmentObject(store)
-            .alert("Moop", isPresented: Binding(get: { store.error != nil }, set: { if !$0 { store.error = nil } })) {
-                Button("OK") { store.error = nil }
-            } message: { Text(store.error ?? "") }
+            EntryView()
+                .environmentObject(store)
+                .tint(Color.moopBlue)
+                .preferredColorScheme(.light)
+                .alert("Moop", isPresented: Binding(get: { store.error != nil }, set: { if !$0 { store.error = nil } })) {
+                    Button("OK") { store.error = nil }
+                } message: { Text(store.error ?? "") }
         }
     }
 }
 
-struct LessonView: View {
+struct RootView: View {
     @EnvironmentObject var store: AppStore
-    @State private var answer = ""
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Label("Learning prototype · app blocking is not active", systemImage: "info.circle")
-                        .font(.footnote).foregroundStyle(.secondary)
-                    if let session = store.state.active {
-                        if let question = session.currentQuestion {
-                            Text("Question \(session.attempts.count + 1) of \(session.questions.count)").font(.headline)
-                            ProgressView(value: Double(session.attempts.count), total: Double(session.questions.count))
-                            Text(question.skill.title).foregroundStyle(.secondary)
-                            Text(question.prompt).font(.system(size: 48, weight: .bold, design: .rounded))
-                            TextField("Your answer", text: $answer)
-                                .keyboardType(.numberPad).textFieldStyle(.roundedBorder)
-                                .accessibilityLabel("Your answer")
-                            Button("Submit answer") {
-                                if let value = Int(answer.trimmingCharacters(in: .whitespacesAndNewlines)) {
-                                    store.submit(value); answer = ""
-                                }
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(Int(answer.trimmingCharacters(in: .whitespacesAndNewlines)) == nil)
-                        } else {
-                            Image(systemName: session.passed ? "checkmark.seal.fill" : "arrow.clockwise.circle")
-                                .font(.system(size: 56)).foregroundStyle(.indigo)
-                            Text(session.passed ? "Lesson passed!" : "Let's keep practicing").font(.title.bold())
-                            Text("\(session.correctCount) / \(session.questions.count) correct · \(session.plan.requiredCorrect) needed")
-                            if session.passed {
-                                Text("Your plan awards \(session.plan.allowanceMinutes) minutes. Device restrictions are not connected in this prototype.")
-                            }
-                            ForEach(Array(session.questions.enumerated()), id: \.offset) { index, question in
-                                if !session.attempts[index].wasCorrect {
-                                    VStack(alignment: .leading) {
-                                        Text("\(question.prompt) = \(question.answer)").bold()
-                                        Text("Your answer: \(session.attempts[index].submittedAnswer)").foregroundStyle(.secondary)
-                                    }.frame(maxWidth: .infinity, alignment: .leading)
-                                }
-                            }
-                            Button("Finish review") { store.dismissResult() }.buttonStyle(.borderedProminent)
-                        }
-                    } else {
-                        Image(systemName: "sparkles").font(.system(size: 64)).foregroundStyle(.indigo)
-                        Text("A little math. A little more freedom.").font(.largeTitle.bold())
-                        Text("\(store.state.plan.questionCount) questions · \(store.state.plan.passingPercent)% to pass")
-                        Button("Start lesson") { answer = ""; store.start() }.buttonStyle(.borderedProminent)
-                    }
-                }.padding(24).frame(maxWidth: 600)
-            }.navigationTitle("moop")
-        }
-    }
-}
+    @State private var tab = MoopTab.learn
+    @State private var inLesson = false
+    @State private var feedback: AnswerFeedback?
 
-struct PlanView: View {
-    @EnvironmentObject var store: AppStore
-    @State private var addition = 10
-    @State private var subtraction = 10
-    @State private var multiplication = 0
-    @State private var percent = 80
-    @State private var minutes = 30
-    var draft: LessonPlan {
-        LessonPlan(items: [.init(skill: .addition, count: addition), .init(skill: .subtraction, count: subtraction),
-                           .init(skill: .multiplication, count: multiplication)], passingPercent: percent, allowanceMinutes: minutes)
-    }
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Text("Developer prototype: this editor is not protected by parent authentication. Do not use it as a parental-control product yet.")
-                }
-                Section("Question allocation") {
-                    Stepper("Addition: \(addition)", value: $addition, in: 0...50)
-                    Stepper("Subtraction: \(subtraction)", value: $subtraction, in: 0...50)
-                    Stepper("Multiplication: \(multiplication)", value: $multiplication, in: 0...50)
-                    Text("\(draft.questionCount) total · maximum 100")
-                }
-                Section("Passing and allowance") {
-                    Stepper("Passing score: \(percent)%", value: $percent, in: 1...100)
-                    Stepper("Allowance: \(minutes) minutes", value: $minutes, in: 1...240)
-                    Text("Requires \(draft.requiredCorrect) correct answers.")
-                    Text("Allowance is configuration only until Screen Time integration is complete.").font(.caption)
-                }
-                Button("Save for next lesson") { store.savePlan(draft) }
-                    .disabled(!(1...100).contains(draft.questionCount))
-                Text("An active lesson keeps its original plan.").font(.caption)
-            }
-            .navigationTitle("Lesson plan")
-            .onAppear {
-                let plan = store.state.plan
-                addition = plan.items.first { $0.skill == .addition }?.count ?? 0
-                subtraction = plan.items.first { $0.skill == .subtraction }?.count ?? 0
-                multiplication = plan.items.first { $0.skill == .multiplication }?.count ?? 0
-                percent = plan.passingPercent; minutes = plan.allowanceMinutes
-            }
-        }
-    }
-}
-
-struct ProgressViewScreen: View {
-    @EnvironmentObject var store: AppStore
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("Completed lessons") {
-                    if store.state.history.isEmpty { Text("Complete a lesson to see progress here.") }
-                    ForEach(store.state.history.reversed()) { lesson in
-                        VStack(alignment: .leading) {
-                            Text(lesson.passed ? "Passed" : "Practice needed").bold()
-                            Text("\(lesson.correctCount)/\(lesson.questions.count) · required \(lesson.plan.passingPercent)%")
-                            Text(lesson.startedAt, style: .date).font(.caption).foregroundStyle(.secondary)
-                        }
+        let active = store.state.active
+        let showResult = active?.isComplete == true && feedback == nil
+        let showLesson = active != nil && !showResult && (inLesson || feedback != nil)
+        VStack(spacing: 0) {
+            if let session = active, showLesson {
+                LessonView(session: session, feedback: $feedback, onPause: pause)
+            } else if let session = active, showResult {
+                ResultView(session: session, onDone: finish, onTryAgain: tryAgain)
+            } else {
+                Group {
+                    switch tab {
+                    case .learn: HomeView(onStart: start)
+                    case .stars: StarsView()
                     }
                 }
-            }.navigationTitle("Progress")
+                .frame(maxHeight: .infinity)
+                MoopTabBar(selection: $tab)
+            }
         }
+        .background(Color.moopSky.ignoresSafeArea())
+    }
+
+    private func start() {
+        store.start()
+        inLesson = store.state.active != nil
+    }
+
+    private func pause() {
+        feedback = nil
+        inLesson = false
+    }
+
+    private func finish() {
+        store.dismissResult()
+        feedback = nil
+        inLesson = false
+        tab = .learn
+    }
+
+    private func tryAgain() {
+        finish()
+        start()
     }
 }
