@@ -11,8 +11,9 @@ An initial SwiftUI math-learning prototype for a planned parent-controlled learn
 - Local atomic JSON persistence of plan, current lesson and completed history.
 - Resume after closing the app; immutable active lesson plan snapshot.
 - Pure Swift package with tests; macOS CI tests and builds the iOS prototype.
+- Kid-friendly interface: mascot, mission card, in-app number keypad, per-answer feedback, optional counting dots, celebration and "so close" results, a weekly star tracker, and a press-and-hold grown-ups check in front of the plan editor.
 
-The prototype plan editor is intentionally accessible for development. It has no parent PIN, account or remote permissions yet. The configured usage allowance does not grant or meter actual device access.
+The press-and-hold grown-ups check only keeps young children out; it is not a security lock. The plan editor has no parent PIN, account or remote permissions yet. The configured usage allowance does not grant or meter actual device access.
 
 ## Run on a Mac
 
