@@ -81,8 +81,9 @@ struct ChunkyButtonStyle: ButtonStyle {
     var radius: CGFloat = 24
     var font: Font = .moop(.title2)
 
-    static func key(fill: Color = .white, depth: Color = .moopLine) -> ChunkyButtonStyle {
-        ChunkyButtonStyle(fill: fill, depth: depth, height: 72, radius: 22, font: .moopNumber(34, weight: .semibold))
+    static func key(fill: Color = .white, depth: Color = .moopLine, height: CGFloat = 72) -> ChunkyButtonStyle {
+        ChunkyButtonStyle(fill: fill, depth: depth, height: height, radius: 22,
+                          font: .moopNumber(height < 60 ? 28 : 34, weight: .semibold))
     }
 
     func makeBody(configuration: Configuration) -> some View {

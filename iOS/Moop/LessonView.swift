@@ -24,32 +24,58 @@ struct LessonView: View {
     private var question: Question? { feedback?.question ?? session.currentQuestion }
     private var number: Int { feedback?.number ?? session.attempts.count + 1 }
 
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
     var body: some View {
-        VStack(spacing: 0) {
-            topBar
-                .padding(.horizontal, 24)
-                .padding(.top, 12)
-            ScrollView {
-                if let question {
-                    problemCard(question).padding(24)
+        Group {
+            if verticalSizeClass == .compact {
+                // Short screens (iPhone landscape): question beside the keypad so neither is squeezed out.
+                HStack(alignment: .top, spacing: 16) {
+                    VStack(spacing: 0) {
+                        topBar.padding(.top, 8)
+                        ScrollView {
+                            if let question {
+                                problemCard(question).padding(.vertical, 16)
+                            }
+                        }
+                    }
+                    ScrollView {
+                        controls(keyHeight: 52).padding(.vertical, 8)
+                    }
+                    .frame(width: 320)
                 }
-            }
-            Group {
-                if let feedback {
-                    FeedbackPanel(feedback: feedback, onNext: next)
-                } else {
-                    Keypad(answer: $answer, onCheck: check)
+                .padding(.horizontal, 16)
+            } else {
+                VStack(spacing: 0) {
+                    topBar
+                        .padding(.horizontal, 24)
+                        .padding(.top, 12)
+                    ScrollView {
+                        if let question {
+                            problemCard(question).padding(24)
+                        }
+                    }
+                    controls(keyHeight: 72)
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
                 }
+                .frame(maxWidth: 600)
+                .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
         }
-        .frame(maxWidth: 600)
-        .frame(maxWidth: .infinity)
         .foregroundStyle(Color.moopInk)
         .sensoryFeedback(trigger: feedback) { _, new in
             guard let new else { return nil }
             return new.wasCorrect ? .success : .warning
+        }
+    }
+
+    @ViewBuilder
+    private func controls(keyHeight: CGFloat) -> some View {
+        if let feedback {
+            FeedbackPanel(feedback: feedback, onNext: next)
+        } else {
+            Keypad(answer: $answer, keyHeight: keyHeight, onCheck: check)
         }
     }
 
@@ -136,6 +162,7 @@ struct LessonView: View {
 
 struct Keypad: View {
     @Binding var answer: String
+    var keyHeight: CGFloat = 72
     let onCheck: () -> Void
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
 
@@ -145,13 +172,13 @@ struct Keypad: View {
             Button { if !answer.isEmpty { answer.removeLast() } } label: {
                 Image(systemName: "delete.left.fill").font(.system(size: 28, weight: .bold))
             }
-            .buttonStyle(ChunkyButtonStyle.key(fill: .moopBlueTint, depth: .moopBlueEdge))
+            .buttonStyle(ChunkyButtonStyle.key(fill: .moopBlueTint, depth: .moopBlueEdge, height: keyHeight))
             .accessibilityLabel("Delete")
             digitKey(0)
             Button(action: onCheck) {
                 Image(systemName: "checkmark").font(.system(size: 30, weight: .black))
             }
-            .buttonStyle(ChunkyButtonStyle.key(fill: .moopOrange, depth: .moopOrangeDeep))
+            .buttonStyle(ChunkyButtonStyle.key(fill: .moopOrange, depth: .moopOrangeDeep, height: keyHeight))
             .disabled(answer.isEmpty)
             .accessibilityLabel("Check answer")
         }
@@ -164,7 +191,7 @@ struct Keypad: View {
         } label: {
             Text("\(digit)")
         }
-        .buttonStyle(ChunkyButtonStyle.key())
+        .buttonStyle(ChunkyButtonStyle.key(height: keyHeight))
     }
 }
 
