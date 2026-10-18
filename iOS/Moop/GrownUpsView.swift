@@ -80,6 +80,8 @@ struct GrownUpsGate: View {
 
 struct PlanEditorView: View {
     @EnvironmentObject var store: AppStore
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage("moop.entryMode") private var entryMode = EntryMode.demo.rawValue
     @State private var counts: [Skill: Int] = [:]
     @State private var percent = 80
     @State private var minutes = 30
@@ -127,6 +129,13 @@ struct PlanEditorView: View {
                 Text("Developer prototype: this area is not protected by a parent PIN, and earned play time does not change device limits yet.")
                     .font(.moop(.caption, weight: .semibold))
                     .foregroundStyle(Color.moopInkSoft)
+                Button("Leave demo and go to sign-in") {
+                    dismiss()
+                    entryMode = EntryMode.none.rawValue
+                }
+                .font(.moop(.subheadline, weight: .heavy))
+                .foregroundStyle(Color.moopBlueDeep)
+                .frame(maxWidth: .infinity, minHeight: 44)
             }
             .foregroundStyle(Color.moopInk)
             .padding(20)

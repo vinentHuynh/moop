@@ -80,7 +80,7 @@ struct MoopApp: App {
     @StateObject private var store = AppStore()
     var body: some Scene {
         WindowGroup {
-            RootView()
+            EntryView()
                 .environmentObject(store)
                 .tint(Color.moopBlue)
                 .preferredColorScheme(.light)
